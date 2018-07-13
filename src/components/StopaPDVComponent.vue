@@ -1,6 +1,8 @@
 <template>
   <main>
     <div class="backdrop" @click="popupActivated = false" v-bind:class="{popupActive: popupActivated}"></div>
+    <div class="backdrop" @click="zoomActivated = false" v-bind:class="{popupActive: zoomActivated}"></div>
+
     <section class="welcome-message">
       <h1> Stope PDV-a </h1>
     </section>
@@ -17,7 +19,7 @@
         <label>PDV <span> * </span></label>
         <select v-model="stopa.pdv">
           <option :value="j" v-for="j in listaPDVa"> {{j.naziv}}</option>
-        </select>
+        </select><button type="button" class="zoomButton" @click="zoomPDV()">...</button>
 
         <button type="button" @click="addStopaPDV()"> Add </button>
       </form>
@@ -80,6 +82,21 @@
 
       </form>
     </section>
+
+    <section class="popup" v-bind:class="{popupActive: zoomActivated}">
+      <h1> PDV-ovi </h1>
+      <table>
+        <tr class="header-row">
+          <th> ID </th>
+          <th> Naziv </th>
+        </tr>
+        <tr  class="table-row" :class="{selected: stopa.pdv.id === p.id}" @click="setSelectedPDV(p)"  v-for="p in listaPDVa" >
+          <td>{{p.id}}</td>
+          <td>{{p.naziv}}</td>
+          </td>
+        </tr>
+      </table>
+    </section>
   <br><br>
 
   </main>
@@ -109,6 +126,7 @@ export default {
 
       },
       popupActivated: false,
+      zoomActivated: false
     };
   },
   methods: {
@@ -178,6 +196,13 @@ export default {
           alert('Doslo je do greske');
 
         })
+    },
+    zoomPDV(){
+      this.zoomActivated = true;
+    },
+    setSelectedPDV(p){
+      this.stopa.pdv = p;
+      this.zoomActivated = false;
     }
   },
   created() {
@@ -215,6 +240,34 @@ export default {
 @import "../assets/scss/mixins/buttons/_default.scss";
 @import "../assets/scss/mixins/tables/_defaultTable.scss";
 @import "../assets/scss/mixins/transitions/_itemTransition.scss";
+
+.popup {
+  display:none;
+  background: $popup-window-color;
+  border: 3px solid $default-color;
+  padding: 1rem;
+  border-radius: 20px;
+  width: 55%;
+  position: fixed;
+  z-index: 6;
+  top: 50%;
+  left: 25%;
+
+  h1 {
+    color: $text-color;
+    font-size: 2rem;
+    text-shadow: 1px 1px 1px $text-color;
+  }
+  table {
+    @include defaultTable;
+    min-width: 700px;
+
+	.selected {
+      background: darken($default-color, 30%) !important;
+      color: white !important;
+    }
+  }
+}
 
 .edit-popup {
 
@@ -292,6 +345,18 @@ export default {
     grid-template-columns: 1fr 3fr;
     grid-template-rows: 1fr 1fr 1fr;
     grid-gap: 1rem;
+
+    .zoomButton {
+      width:30px;
+      margin:0;
+      padding: 0;
+      height: 20px;
+      justify-self: right;
+
+      &:after{
+        display: none;
+      }
+    }
 
     label {
       align-self: center;
