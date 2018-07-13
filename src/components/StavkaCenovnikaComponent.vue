@@ -220,12 +220,21 @@ export default {
     }
   },
   created() {
+    //console.log(JSON.parse(JSON.stringify(this.$store.state.nextEntity.nazivProizvoda)));
     if (this.$store.state.nextEntity !== ''){
       this.nextExists = true;
-    }
-    if (this.nextExists){
-
-      this.$http.get('api/stavkaCenovnika/getAll').then(response => {
+      if (this.$store.state.nextEntity.nazivProizvoda === undefined){
+        this.$http.get('api/stavkaCenovnika/getAll').then(response => {
+        var lista = response.body;
+        this.listaStavki = []
+        for( var i = 0; i < lista.length; i++){
+          if (lista[i].cenovnik.id === this.$store.state.nextEntity.id){
+            this.listaStavki.push(lista[i]);
+          }
+        }
+      })
+      } else  {
+        this.$http.get('api/stavkaCenovnika/getAll').then(response => {
         var lista = response.body;
         this.listaStavki = []
         for( var i = 0; i < lista.length; i++){
@@ -233,11 +242,10 @@ export default {
             this.listaStavki.push(lista[i]);
           }
         }
-
-
-    })
-    } else {
-
+      })
+      }
+    }
+    else {
       this.$http.get('api/stavkaCenovnika/getAll').then(response => {
       this.listaStavki = response.body;
     })

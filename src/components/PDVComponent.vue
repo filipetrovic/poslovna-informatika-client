@@ -26,7 +26,14 @@
 
 
 
-          <th></th>
+          <th> StopaPDV
+            <i class="material-icons" @click="nextTo(p,1)">
+                navigate_next
+            </i>  / GrupaProizvoda
+            <i class="material-icons" @click="nextTo(p,2)">
+                next_week
+            </i>
+            </th>
         </tr>
         <tr  class="table-row"  v-for="p in listaPDVa" >
           <td>{{p.id}}</td>
@@ -42,6 +49,16 @@
             <span >
               <i class="material-icons" @click="deletePDV(p.id)">
                 delete
+              </i>
+            </span>
+            <span >
+              <i class="material-icons" @click="nextTo(p,1)">
+                navigate_next
+              </i>
+            </span>
+            <span >
+              <i class="material-icons" @click="nextTo(p,2)">
+                next_week
               </i>
             </span>
           </td>
@@ -128,7 +145,17 @@ export default {
           alert('Doslo je do greske');
 
         })
-    }
+    },
+    nextTo(p,i){
+     this.$store.state.nextEntity = p;
+     if (i === 1){
+       this.$router.push('/stopa');
+     } else {
+       this.$router.push('/grupa');
+     }
+
+
+   }
   },
   created() {
     this.$http.get('api/pdv/getAll').then(response => {
@@ -321,6 +348,27 @@ export default {
   table {
     @include defaultTable;
     min-width: 700px;
+
+    tr {
+      th:last-of-type{
+        width: 350px;
+
+        i {
+          position:relative;
+          top:4px;
+        }
+      }
+
+      .operations {
+        span {
+          display:flex;
+          justify-content: center;
+          align-items: center;
+
+
+        }
+      }
+    }
   }
 }
 </style>

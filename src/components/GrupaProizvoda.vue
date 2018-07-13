@@ -26,6 +26,7 @@
 
     <section class="table"  >
       <h1> Grupe proizvoda </h1>
+      <p v-if="nextExists" @click="clearFilter()"><b>Izbrisi filter (next) </b></p>
       <table>
         <tr class="header-row">
           <th> ID </th>
@@ -164,17 +165,43 @@ export default {
     setSelectedPDV(p){
       this.grupa.pdv = p;
       this.zoomActivated = false;
+    },
+    clearFilter() {
+      this.nextExists = false;
+      this.$store.state.nextEntity = '';
+      this.$http.get('api/grupaProizvoda/getAll').then(response => {
+      this.listaGrupa = response.body;
+    })
     }
   },
   created() {
-    this.$http.get('api/grupaProizvoda/getAll').then(response => {
-      this.listaGrupa = response.body;
-    })
+    if (this.$store.state.nextEntity !== ''){
+       this.nextExists = true;
+       this.$http.get('api/grupaProizvoda/getAll').then(response => {
+        var lista = response.body;
+        this.listaGrupa = []
+        for( var i = 0; i < lista.length; i++){
+          if (lista[i].pdv.id === this.$store.state.nextEntity.id){
+            this.listaGrupa.push(lista[i]);
+          }
+        }
+      })
+     }
+     else {
+        this.$http.get('api/grupaProizvoda/getAll').then(response => {
+        this.listaGrupa = response.body;
+      })
+    }
 
     this.$http.get('api/pdv/getAll').then(response => {
       this.listaPDV = response.body;
     })
-  }
+  },
+  beforeRouteLeave (to, from, next) {
+    this.$store.state.nextEntity = '';
+    next();
+
+  },
 };
 </script>
 
@@ -397,6 +424,17 @@ export default {
     color: $text-color;
     font-size: 2rem;
     text-shadow: 1px 1px 1px $text-color;
+  }
+  p {
+    padding-left: 3rem;
+    width: 150px;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      color: black;
+      text-shadow: 1px 1px 1px gray;
+    }
   }
   table {
     @include defaultTable;

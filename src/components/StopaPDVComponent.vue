@@ -29,6 +29,7 @@
 
     <section class="table"  >
       <h1> Stope </h1>
+      <p v-if="nextExists" @click="clearFilter()"><b>Izbrisi filter (next) </b></p>
       <table>
         <tr class="header-row">
           <th> ID </th>
@@ -109,7 +110,7 @@ export default {
     return {
       listaStopa : [],
       listaPDVa : [],
-
+      nextExists : false,
 
       stopa: {
         id: '',
@@ -203,12 +204,34 @@ export default {
     setSelectedPDV(p){
       this.stopa.pdv = p;
       this.zoomActivated = false;
+    },
+    clearFilter() {
+      this.nextExists = false;
+      this.$store.state.nextEntity = '';
+      this.$http.get('api/stopa/getAll').then(response => {
+      this.listaStopa = response.body;
+    })
     }
   },
   created() {
-    this.$http.get('api/stopa/getAll').then(response => {
-      this.listaStopa = response.body;
-    })
+
+     if (this.$store.state.nextEntity !== ''){
+       this.nextExists = true;
+       this.$http.get('api/stopa/getAll').then(response => {
+        var lista = response.body;
+        this.listaStopa = []
+        for( var i = 0; i < lista.length; i++){
+          if (lista[i].pdv.id === this.$store.state.nextEntity.id){
+            this.listaStopa.push(lista[i]);
+          }
+        }
+      })
+     }
+     else {
+        this.$http.get('api/stopa/getAll').then(response => {
+        this.listaStopa = response.body;
+      })
+    }
     this.$http.get('api/pdv/getAll').then(response =>{
       var lista = response.body;
       for (var i = 0; i < lista.length; i++) {
@@ -226,11 +249,13 @@ export default {
         this.listaPDVa.push(pdv);
       }
       console.log(JSON.parse(JSON.stringify(this.listaPDVa[2])))
-
-
     })
+  },
+  beforeRouteLeave (to, from, next) {
+    this.$store.state.nextEntity = '';
+    next();
 
-  }
+  },
 };
 </script>
 
@@ -453,6 +478,17 @@ export default {
     color: $text-color;
     font-size: 2rem;
     text-shadow: 1px 1px 1px $text-color;
+  }
+  p {
+    padding-left: 3rem;
+    width: 150px;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      color: black;
+      text-shadow: 1px 1px 1px gray;
+    }
   }
   table {
     @include defaultTable;

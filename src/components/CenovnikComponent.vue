@@ -46,6 +46,11 @@
                 file_copy
               </i>
             </span>
+            <span >
+              <i class="material-icons" @click="nextTo(c)">
+                navigate_next
+              </i>
+            </span>
           </td>
         </tr>
       </table>
@@ -180,7 +185,12 @@ export default {
           this.listaCenovnika = response.body;
         })
       })
-    }
+    },
+    nextTo(p){
+     this.$store.state.nextEntity = p;
+     this.$router.push('/stavka');
+
+   }
   },
   created() {
     this.$http.get('api/cenovnik/getAll').then(response => {
