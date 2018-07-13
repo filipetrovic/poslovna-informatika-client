@@ -14,7 +14,7 @@
         text-transform: uppercase;
         background-color: $default-color;
         position: relative;
-        z-index: 2;
+        //z-index: 2;
         @include default-transition;
 
         &:hover {

@@ -1,6 +1,9 @@
 <template>
   <main>
     <div class="backdrop" @click="popupActivated = false" v-bind:class="{popupActive: popupActivated}"></div>
+    <div class="backdrop" @click="zoomProizvodActivated = false" v-bind:class="{popupActive: zoomProizvodActivated}"></div>
+    <div class="backdrop" @click="zoomCenovnikActivated = false" v-bind:class="{popupActive: zoomCenovnikActivated}"></div>
+
     <section class="welcome-message">
       <h1> Stavke cenovnika </h1>
     </section>
@@ -14,12 +17,12 @@
         <label>Proizvod <span> * </span></label>
         <select v-model="stavka.proizvod">
           <option :value="j" v-for="j in listaProizvoda"> {{j.nazivProizvoda}}</option>
-        </select>
+        </select><button type="button" class="zoomButton" @click="zoomProizvod()">...</button>
 
         <label>Cenovnik <span> * </span></label>
         <select v-model="stavka.cenovnik">
           <option :value="j" v-for="j in listaCenovnika"> {{j.datumVazenja}}</option>
-        </select>
+        </select><button type="button" class="zoomButton" @click="zoomCenovnik()">...</button>
 
         <button type="button" @click="addStavkaCenovnika()"> Add </button>
       </form>
@@ -29,6 +32,7 @@
 
     <section class="table"  >
       <h1> Stavke </h1>
+      <p v-if="nextExists" @click="clearFilter()"><b>Izbrisi filter (next) </b></p>
       <table>
         <tr class="header-row">
           <th> ID </th>
@@ -77,11 +81,43 @@
         <select v-model="stavkaZaAzuriranje.cenovnik">
           <option :value="j" v-for="j in listaCenovnika"> {{j.datumVazenja}}</option>
         </select>
-
-
-
         <button type="button" @click="popupActivated=false;confirmUpdateStavkaCenovnika()" > Edit </button>
       </form>
+    </section>
+
+    <section class="popup" v-bind:class="{popupActive: zoomProizvodActivated}">
+      <h1> Prozvodi </h1>
+      <table>
+        <tr class="header-row">
+          <th> ID </th>
+          <th> Naziv </th>
+          <th> Vrsta </th>
+        </tr>
+        <tr  class="table-row" :class="{selected: stavka.proizvod.nazivProizvoda === p.nazivProizvoda}" @click="setSelectedProizvod(p)"  v-for="p in listaProizvoda" >
+          <td>{{p.id}}</td>
+          <td>{{p.nazivProizvoda}}</td>
+          <td> {{p.vrstaProizvoda}}</td>
+
+
+        </tr>
+      </table>
+    </section>
+
+    <section class="popup" v-bind:class="{popupActive: zoomCenovnikActivated}">
+
+      <h1> Cenovnici </h1>
+      <table>
+        <tr class="header-row">
+          <th> ID </th>
+          <th> Datum vazenja </th>
+
+          <th></th>
+        </tr>
+        <tr  class="table-row" :class="{selected: stavka.cenovnik.id === c.id}" @click="setSelectedCenovnik(c)"  v-for="c in listaCenovnika" >
+          <td>{{c.id}}</td>
+          <td>{{c.datumVazenja}}</td>
+        </tr>
+      </table>
     </section>
 
   </main>
@@ -95,7 +131,7 @@ export default {
       listaStavki : [],
       listaCenovnika : [],
       listaProizvoda : [],
-
+      nextExists: false,
       stavka: {
         id: '',
         cena: '',
@@ -111,6 +147,9 @@ export default {
 
       },
       popupActivated: false,
+
+      zoomProizvodActivated: false,
+      zoomCenovnikActivated: false
     };
   },
   methods: {
@@ -157,12 +196,53 @@ export default {
           alert('Doslo je do greske');
 
         })
+    },
+    zoomProizvod() {
+      this.zoomProizvodActivated = true;
+    },
+    zoomCenovnik(){
+      this.zoomCenovnikActivated = true;
+    },
+    setSelectedProizvod(p){
+      this.stavka.proizvod = p;
+      this.zoomProizvodActivated = false;
+    },
+    setSelectedCenovnik(c){
+      this.stavka.cenovnik = c;
+      this.zoomCenovnikActivated = false;
+    },
+    clearFilter() {
+      this.nextExists = false;
+      this.$store.state.nextEntity = '';
+      this.$http.get('api/stavkaCenovnika/getAll').then(response => {
+      this.listaStavki = response.body;
+    })
     }
   },
   created() {
-    this.$http.get('api/stavkaCenovnika/getAll').then(response => {
+    if (this.$store.state.nextEntity !== ''){
+      this.nextExists = true;
+    }
+    if (this.nextExists){
+
+      this.$http.get('api/stavkaCenovnika/getAll').then(response => {
+        var lista = response.body;
+        this.listaStavki = []
+        for( var i = 0; i < lista.length; i++){
+          if (lista[i].proizvod.id === this.$store.state.nextEntity.id){
+            this.listaStavki.push(lista[i]);
+          }
+        }
+
+
+    })
+    } else {
+
+      this.$http.get('api/stavkaCenovnika/getAll').then(response => {
       this.listaStavki = response.body;
     })
+    }
+
     this.$http.get('api/cenovnik/getAll').then(response =>{
       this.listaCenovnika = response.body
     })
@@ -188,7 +268,12 @@ export default {
 
 
 
-  }
+  },
+  beforeRouteLeave (to, from, next) {
+    this.$store.state.nextEntity = '';
+    next();
+
+  },
 };
 </script>
 
@@ -198,6 +283,34 @@ export default {
 @import "../assets/scss/mixins/buttons/_default.scss";
 @import "../assets/scss/mixins/tables/_defaultTable.scss";
 @import "../assets/scss/mixins/transitions/_itemTransition.scss";
+
+.popup {
+  display:none;
+  background: $popup-window-color;
+  border: 3px solid $default-color;
+  padding: 1rem;
+  border-radius: 20px;
+  width: 55%;
+  position: fixed;
+  z-index: 6;
+  top: 50%;
+  left: 25%;
+
+  h1 {
+    color: $text-color;
+    font-size: 2rem;
+    text-shadow: 1px 1px 1px $text-color;
+  }
+  table {
+    @include defaultTable;
+    min-width: 700px;
+
+    .selected {
+      background: darken($default-color, 30%) !important;
+      color: white !important;
+    }
+  }
+}
 
 .edit-popup {
 
@@ -304,6 +417,18 @@ export default {
       border-radius: 6px;
     }
 
+    .zoomButton {
+      width:30px;
+      margin:0;
+      padding: 0;
+      height: 20px;
+      justify-self: right;
+
+      &:after{
+        display: none;
+      }
+    }
+
     button {
       @include defaultButton;
       width: 40%;
@@ -371,6 +496,17 @@ export default {
     color: $text-color;
     font-size: 2rem;
     text-shadow: 1px 1px 1px $text-color;
+  }
+  p {
+    padding-left: 3rem;
+    width: 150px;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      color: black;
+      text-shadow: 1px 1px 1px gray;
+    }
   }
   table {
     @include defaultTable;

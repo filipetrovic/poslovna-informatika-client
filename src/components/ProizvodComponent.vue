@@ -1,6 +1,8 @@
 <template>
   <main>
     <div class="backdrop" @click="popupActivated = false" v-bind:class="{popupActive: popupActivated}"></div>
+    <div class="backdropZoom" @click="zoomGrupaActivated = false" v-bind:class="{popupActive: zoomGrupaActivated}"></div>
+    <div class="backdropZoom" @click="zoomJedinicaActivated = false" v-bind:class="{popupActive: zoomJedinicaActivated}"></div>
     <section class="welcome-message">
       <h1> Proizvod </h1>
     </section>
@@ -16,14 +18,14 @@
         <select   v-model="proizvod.grupaProizvoda">
           <option :value="g" v-for="g in listaGrupaProizvoda"> {{g.nazivGrupeProizvoda}}</option>
 
-        </select>
+        </select><button type="button" class="zoomButton" @click="zoomGrupa()">...</button>
 
         <label>Jedinica mere <span> * </span></label>
         <select v-model="proizvod.jedinicaMere">
           <option :value="j" v-for="j in listaJedinicaMere"> {{j.nazivJediniceMere}}</option>
-        </select>
+        </select><button type="button" class="zoomButton"  @click="zoomJedinica()">...</button>
 
-        <button type="button" @click="addProizvod()"> Add </button>
+        <button type="button" @click="addProizvod()" > Add </button>
       </form>
 
 
@@ -57,6 +59,11 @@
                 delete
               </i>
             </span>
+            <span >
+              <i class="material-icons" @click="nextTo(p)">
+                navigate_next
+              </i>
+            </span>
           </td>
         </tr>
       </table>
@@ -88,6 +95,38 @@
       {{proizvod}}
     </section>
 
+    <section class="popup" v-bind:class="{popupActive: zoomGrupaActivated}">
+      <h1> Grupe proizvoda </h1>
+      <table>
+        <tr class="header-row">
+          <th> ID </th>
+          <th> Naziv </th>
+          <th> PDV</th>
+        </tr>
+        <tr  class="table-row" :class="{selected: proizvod.grupaProizvoda.nazivGrupeProizvoda === g.nazivGrupeProizvoda}" @click="setSelectedGrupa(g)" v-for="g in listaGrupaProizvoda" >
+          <td>{{g.id}}</td>
+          <td>{{g.nazivGrupeProizvoda}}</td>
+          <td> {{g.pdv.naziv}}</td>
+        </tr>
+      </table>
+    </section>
+
+    <section class="popup" v-bind:class="{popupActive: zoomJedinicaActivated}">
+      <h1> Jedinice mere </h1>
+      <table>
+        <tr class="header-row">
+          <th> ID </th>
+          <th> Naziv </th>
+          <th> Skracenica </th>
+        </tr>
+        <tr  class="table-row" :class="{selected: proizvod.jedinicaMere.nazivJediniceMere === j.nazivJediniceMere}" @click="setSelectedJedinica(j)"  v-for="j in listaJedinicaMere" >
+          <td>{{j.id}}</td>
+          <td>{{j.nazivJediniceMere}}</td>
+          <td>{{j.skracenica}}</td>
+        </tr>
+      </table>
+    </section>
+
   </main>
 </template>
 
@@ -116,6 +155,11 @@ export default {
 
       },
       popupActivated: false,
+
+      //ZOOOOOOOOOOOOOOOOOOOOOOOOOM
+      zoomGrupaActivated : false,
+      zoomJedinicaActivated : false,
+
     };
   },
   methods: {
@@ -161,7 +205,28 @@ export default {
           alert('Doslo je do greske');
 
         })
-    }
+    },
+   zoomGrupa(){
+     this.zoomGrupaActivated = true;
+   },
+   zoomJedinica(){
+     this.zoomJedinicaActivated = true;
+   },
+   setSelectedGrupa(g){
+     this.proizvod.grupaProizvoda = g;
+     this.zoomGrupaActivated = false;
+   },
+   setSelectedJedinica(g){
+     this.proizvod.jedinicaMere = g;
+     this.zoomJedinicaActivated = false;
+   },
+   nextTo(p){
+     this.$store.state.nextEntity = p;
+
+     //console.log(JSON.parse(JSON.stringify(this.$store.state.selectedEntityForNext)))
+     this.$router.push('/stavka');
+
+   }
   },
   created() {
     this.$http.get('api/proizvod/getAll').then(response => {
@@ -186,6 +251,34 @@ export default {
 @import "../assets/scss/mixins/buttons/_default.scss";
 @import "../assets/scss/mixins/tables/_defaultTable.scss";
 @import "../assets/scss/mixins/transitions/_itemTransition.scss";
+
+.popup {
+  display:none;
+  background: $popup-window-color;
+  border: 3px solid $default-color;
+  padding: 1rem;
+  border-radius: 20px;
+  width: 55%;
+  position: fixed;
+  z-index: 6;
+  top: 50%;
+  left: 25%;
+
+  h1 {
+    color: $text-color;
+    font-size: 2rem;
+    text-shadow: 1px 1px 1px $text-color;
+  }
+  table {
+    @include defaultTable;
+    min-width: 700px;
+
+    .selected {
+      background: darken($default-color, 30%) !important;
+      color: white !important;
+    }
+  }
+}
 
 .edit-popup {
 
@@ -241,6 +334,10 @@ export default {
     background: transparentize($backdrop-color,0.7);
 }
 
+.backdropZoom {
+  @extend .backdrop;
+}
+
 .welcome-message {
   @include welcomeMessage;
 }
@@ -263,6 +360,18 @@ export default {
     grid-template-columns: 1fr 3fr;
     grid-template-rows: 1fr 1fr 1fr;
     grid-gap: 1rem;
+
+    .zoomButton {
+      width:30px;
+      margin:0;
+      padding: 0;
+      height: 20px;
+      justify-self: right;
+
+      &:after{
+        display: none;
+      }
+    }
 
     label {
       align-self: center;

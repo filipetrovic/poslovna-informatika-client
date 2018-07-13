@@ -41,6 +41,11 @@
                 delete
               </i>
             </span>
+            <span >
+              <i class="material-icons" @click="copyCenovnik(c)">
+                file_copy
+              </i>
+            </span>
           </td>
         </tr>
       </table>
@@ -54,6 +59,20 @@
         <label>Datum vazenja <span> * </span></label>
         <input type="date" v-model="cenovnikZaAzuriranje.datumVazenja" />
         <button type="button" @click="popupActivated=false;confirmUpdateCenovnik()" > Edit </button>
+      </form>
+    </section>
+
+    <section v-if="copyActive" class="main-content">
+      <h1> Kopiraj selektovani cenovnik </h1>
+      <form class="add-agent-form">
+        <label>Datum vazenja <span> * </span></label>
+        <input type="date" v-model="cenovnikZaCopy.datumVazenja" />
+
+        <label>Promena cene [%] <span> * </span></label>
+        <input type="text" v-model="promenaCene" placeholder="Trenutna cena je 100%" />
+
+        <button type="button" @click="confirmCopyCenovnik()"> Add </button>
+
       </form>
     </section>
 
@@ -76,6 +95,12 @@ export default {
         datumVazenja: ''
       },
       popupActivated: false,
+      cenovnikZaCopy : {
+        id: '',
+        datumVazenja: ''
+      },
+      promenaCene: '',
+      copyActive: false
     };
   },
   methods: {
@@ -124,6 +149,37 @@ export default {
           alert('Doslo je do greske');
 
         })
+    },
+    copyCenovnik(p){
+      var params = {'id' : p.id};
+      this.$http.get('api/cenovnik/getOne', {params: params}).then(response => {
+        this.cenovnikZaCopy = response.body;
+        var res = this.cenovnikZaCopy.datumVazenja.split("T");
+        this.cenovnikZaCopy.datumVazenja = res[0];
+
+      })
+      this.copyActive = true;
+    },
+    confirmCopyCenovnik(){
+      var cenovnikZaSlanje = {
+        datumVazenja: ''
+      }
+      cenovnikZaSlanje.datumVazenja =  this.cenovnikZaCopy.datumVazenja;
+
+      var params = {
+        'parentId' : this.cenovnikZaCopy.id,
+        'promenaCene': this.promenaCene
+      }
+      this.$http.post('api/cenovnik/copy',cenovnikZaSlanje , {params: params}).then(response => {
+        console.log('aaaaaa');
+        this.promenaCene = '';
+        this.cenovnikZaCopy = '';
+        this.copyActive = false;
+        this.$http.get('api/cenovnik/getAll').then(response => {
+          console.log("usao ovde")
+          this.listaCenovnika = response.body;
+        })
+      })
     }
   },
   created() {
@@ -213,7 +269,7 @@ export default {
     text-shadow: 1px 1px 1px $text-color;
   }
   form {
-    margin-bottom: 4rem;
+
     width: 50%;
     display: grid;
     grid-template-columns: 1fr 3fr;

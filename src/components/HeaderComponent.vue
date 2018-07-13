@@ -29,6 +29,18 @@
                 <li class="main-nav__item ">
                     <router-link  to="/jedinicaMere" tag="a" >Jedinica mere</router-link>
                 </li>
+                <li class="main-nav__item ">
+                    <router-link  to="/narudzbenica" tag="a" > Narudzbenica</router-link>
+                </li>
+                <li class="main-nav__item ">
+                    <router-link  to="/pravljenjeNarudzbenice" tag="a" > Pravljenje Narudzbenice</router-link>
+                </li>
+                <li class="main-nav__item ">
+                    <router-link  to="/faktura" tag="a" > Fakture</router-link>
+                </li>
+                <li class="main-nav__item ">
+                    <router-link  to="/dnevnik" tag="a" > Dnevnik </router-link>
+                </li>
             </ul>
         </nav>
     </section>

@@ -16,6 +16,7 @@ const router = new VueRouter({
 })
 
 
+
 Vue.config.productionTip = false
 Vue.use(VueResource);
 Vue.use(VueRouter);

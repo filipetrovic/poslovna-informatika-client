@@ -5,9 +5,12 @@ Vue.use(Vuex);
 
 export const store = new Vuex.Store({
     plugins: [],
-    state: {},
+    state: {
+      nextEntity: '',
+
+    },
     getters: {},
     mutations: {},
     actions: {}
-    
+
 })
