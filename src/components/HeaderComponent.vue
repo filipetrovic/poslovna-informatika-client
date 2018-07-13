@@ -17,6 +17,10 @@
                 <li class="main-nav__item ">
                     <router-link  to="/cenovnik" tag="a" >Cenovnici</router-link>
                 </li>
+
+                <li class="main-nav__item ">
+                    <router-link  to="/jedinicaMere" tag="a" >Jedinica mere</router-link>
+                </li>
                 <li class="main-nav__item ">
                     <router-link  to="/grupa" tag="a" >Grupa</router-link>
                 </li>
@@ -26,9 +30,7 @@
                 <li class="main-nav__item ">
                     <router-link  to="/stopa" tag="a" >Stopa</router-link>
                 </li>
-                <li class="main-nav__item ">
-                    <router-link  to="/jedinicaMere" tag="a" >Jedinica mere</router-link>
-                </li>
+
                 <li class="main-nav__item ">
                     <router-link  to="/narudzbenica" tag="a" > Narudzbenica</router-link>
                 </li>
@@ -115,7 +117,9 @@ export default {
       color: black;
       text-decoration: none;
       font-family: "Gill Sans", sans-serif;
-      text-transform: uppercase;
+      font-size: 0.8rem;
+      font-weight: bold;
+      //text-transform: uppercase;
       transition: color 0.2s;
 
       &:hover,
